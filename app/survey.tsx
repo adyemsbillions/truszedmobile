@@ -3,14 +3,13 @@ import { useRef, useState } from "react";
 import {
     Animated,
     KeyboardAvoidingView,
-    Platform,
     ScrollView,
     StatusBar,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
-    View,
+    View
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -18,171 +17,140 @@ const G = "#C9A84C";
 const G_DIM = "rgba(201,168,76,0.15)";
 const CARD = "#111111";
 const BG = "#0A0A0A";
-const TOTAL = 6;
 
-// ── Step definitions ──────────────────────────────────────────────────────────
+// ✅ FULL STEPS (MATCHES YOUR API)
 const STEPS = [
   {
-    key: "property_type",
-    title: "Property Type",
-    subtitle: "What kind of property are you assessing?",
-    icon: "◈",
+    key: "title_seen",
+    title: "Title Seen",
     type: "options",
-    options: [
-      "Residential",
-      "Commercial",
-      "Industrial",
-      "Land / Plot",
-      "Mixed Use",
-    ],
+    options: ["yes", "trusted", "no"],
   },
   {
-    key: "title_seen",
-    title: "Title Document",
-    subtitle: "Have you physically sighted the title document?",
-    icon: "◧",
-    type: "yesno",
+    key: "verified_registry",
+    title: "Verified at Registry",
+    type: "options",
+    options: ["yes", "rep", "no"],
   },
+  {
+    key: "file_number",
+    title: "File Number",
+    type: "text",
+    placeholder: "Enter file number",
+  },
+  { key: "agis_pin", title: "AGIS Pin", type: "yesno" },
+  { key: "contract", title: "Contract of Sale", type: "yesno" },
+
   {
     key: "zoning",
-    title: "Zoning Status",
-    subtitle: "What is the zoning classification of the property?",
-    icon: "◉",
+    title: "Zoning",
     type: "options",
     options: [
-      "Residential",
-      "Commercial",
-      "Agricultural",
-      "Industrial",
-      "Unverified",
+      "residential",
+      "commercial",
+      "agricultural",
+      "industrial",
+      "not_sure",
     ],
   },
+  { key: "plot_verified", title: "Plot Verified", type: "yesno" },
+  { key: "setback", title: "Setback Confirmed", type: "yesno" },
+  { key: "master_plan", title: "Master Plan Checked", type: "yesno" },
+  { key: "topography", title: "Topography Checked", type: "yesno" },
+  { key: "survey", title: "Survey Available", type: "yesno" },
+  { key: "excision", title: "Excision Status", type: "yesno" },
+  { key: "coordinates", title: "Coordinates Verified", type: "yesno" },
   {
-    key: "encroachment",
-    title: "Encroachment",
-    subtitle: "Is there any sign of encroachment on the property?",
-    icon: "◎",
-    type: "yesno",
+    key: "approval_number",
+    title: "Approval Number",
+    type: "text",
+    placeholder: "Optional",
   },
+
+  { key: "beacons", title: "Beacons Present", type: "yesno" },
+  { key: "neighbors", title: "Neighbors Confirmed", type: "yesno" },
+  { key: "encroachment", title: "Encroachment", type: "yesno" },
+  { key: "utilities", title: "Utilities Available", type: "yesno" },
+
   {
     key: "owner_name",
-    title: "Registered Owner",
-    subtitle: "Enter the name of the registered property owner.",
-    icon: "◈",
+    title: "Owner Name",
     type: "text",
-    placeholder: "e.g. Chukwuemeka Obi",
+    placeholder: "Enter owner name",
   },
-  {
-    key: "mortgage",
-    title: "Mortgage / Lien",
-    subtitle: "Is the property under any mortgage or lien?",
-    icon: "◧",
-    type: "yesno",
-  },
+  { key: "nin_verified", title: "NIN Verified", type: "yesno" },
+
+  { key: "mortgage", title: "Mortgage", type: "yesno" },
+  { key: "litigation", title: "Litigation", type: "yesno" },
+  { key: "authority", title: "Authority to Sell", type: "yesno" },
+  { key: "community", title: "Community Verified", type: "yesno" },
 ];
 
-// ── Components ────────────────────────────────────────────────────────────────
-function OptionPicker({
-  options,
-  value,
-  onChange,
-}: {
-  options: string[];
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <View style={s.optionList}>
-      {options.map((opt) => {
-        const active = value === opt;
-        return (
-          <TouchableOpacity
-            key={opt}
-            style={[s.optionBtn, active && s.optionBtnActive]}
-            onPress={() => onChange(opt)}
-            activeOpacity={0.75}
-          >
-            <View style={[s.optionDot, active && s.optionDotActive]} />
-            <Text style={[s.optionText, active && s.optionTextActive]}>
-              {opt}
-            </Text>
-            {active && <Text style={s.optionCheck}>✓</Text>}
-          </TouchableOpacity>
-        );
-      })}
-    </View>
-  );
-}
+const TOTAL = STEPS.length;
 
-function YesNo({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-}) {
+// ── Components ─────────────────────────────────────
+function YesNo({ value, onChange }: any) {
   return (
     <View style={s.yesnoRow}>
-      {["Yes", "No"].map((opt) => {
-        const active = value === opt.toLowerCase();
-        return (
-          <TouchableOpacity
-            key={opt}
-            style={[s.yesnoBtn, active && s.yesnoActive]}
-            onPress={() => onChange(opt.toLowerCase())}
-            activeOpacity={0.75}
-          >
-            <Text style={[s.yesnoText, active && s.yesnoTextActive]}>
-              {opt}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+      {["yes", "no"].map((opt) => (
+        <TouchableOpacity
+          key={opt}
+          style={[s.yesnoBtn, value === opt && s.yesnoActive]}
+          onPress={() => onChange(opt)}
+        >
+          <Text style={[s.yesnoText, value === opt && s.yesnoTextActive]}>
+            {opt.toUpperCase()}
+          </Text>
+        </TouchableOpacity>
+      ))}
     </View>
   );
 }
 
-// ── Main Screen ───────────────────────────────────────────────────────────────
+function Options({ options, value, onChange }: any) {
+  return (
+    <View style={s.optionList}>
+      {options.map((opt: string) => (
+        <TouchableOpacity
+          key={opt}
+          style={[s.optionBtn, value === opt && s.optionBtnActive]}
+          onPress={() => onChange(opt)}
+        >
+          <Text style={[s.optionText, value === opt && s.optionTextActive]}>
+            {opt}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
+
+// ── Main ───────────────────────────────────────────
 export default function Survey() {
-  const [step, setStep] = useState(0); // 0-indexed
-  const [form, setForm] = useState<Record<string, string>>({});
-  const [submitting, setSubmitting] = useState(false);
-  const [focused, setFocused] = useState(false);
+  const [step, setStep] = useState(0);
+  const [form, setForm] = useState<any>({});
+  const [loading, setLoading] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const insets = useSafeAreaInsets();
 
   const current = STEPS[step];
+  const value = form[current.key] || "";
   const progress = (step + 1) / TOTAL;
-  const value = form[current.key] ?? "";
 
-  const animateIn = (dir: 1 | -1) => {
-    slideAnim.setValue(dir * 40);
-    Animated.spring(slideAnim, {
-      toValue: 0,
-      tension: 80,
-      friction: 12,
-      useNativeDriver: true,
-    }).start();
-  };
+  const update = (k: string, v: string) =>
+    setForm((f: any) => ({ ...f, [k]: v }));
 
-  const updateField = (key: string, val: string) =>
-    setForm((f) => ({ ...f, [key]: val }));
-
-  const goNext = () => {
+  const next = () => {
     if (!value) return;
-    animateIn(1);
     setStep((s) => s + 1);
   };
 
-  const goPrev = () => {
-    animateIn(-1);
-    setStep((s) => s - 1);
-  };
+  const prev = () => setStep((s) => s - 1);
 
-  const submitSurvey = async () => {
-    if (!value) return;
+  const submit = async () => {
     try {
-      setSubmitting(true);
+      setLoading(true);
+
       const res = await fetch(
         "https://truszedproperties.com/api/risk_calculator_api.php",
         {
@@ -191,318 +159,158 @@ export default function Survey() {
           body: JSON.stringify(form),
         },
       );
-      const data = await res.json();
+
+      const text = await res.text();
+      console.log("RAW:", text);
+
+      const data = JSON.parse(text);
+
       router.replace({
         pathname: "/result",
         params: {
           score: data.total_score,
           verdict: data.verdict,
-          reportId: data.report_id || 1,
+          insights: JSON.stringify(data.insights),
         },
       });
-    } catch {
-      alert("Network error. Please try again.");
+    } catch (e) {
+      alert("Error submitting survey");
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={s.root}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <StatusBar barStyle="light-content" backgroundColor={BG} />
+    <KeyboardAvoidingView style={s.root} behavior="padding">
+      <StatusBar barStyle="light-content" />
 
-      {/* Top bar */}
-      <View style={[s.topBar, { paddingTop: insets.top + 12 }]}>
-        <TouchableOpacity
-          onPress={step === 0 ? () => router.back() : goPrev}
-          style={s.backBtn}
-        >
-          <Text style={s.backIcon}>←</Text>
+      {/* Header */}
+      <View style={[s.topBar, { paddingTop: insets.top }]}>
+        <TouchableOpacity onPress={step === 0 ? () => router.back() : prev}>
+          <Text style={{ color: G }}>←</Text>
         </TouchableOpacity>
-        <View style={s.stepBadge}>
-          <Text style={s.stepBadgeText}>
-            STEP {step + 1} OF {TOTAL}
-          </Text>
-        </View>
-        <View style={{ width: 40 }} />
+        <Text style={{ color: G }}>
+          {step + 1} / {TOTAL}
+        </Text>
+        <View style={{ width: 20 }} />
       </View>
 
-      {/* Progress bar */}
+      {/* Progress */}
       <View style={s.progressTrack}>
-        <Animated.View
-          style={[s.progressFill, { width: `${progress * 100}%` }]}
-        />
+        <View style={[s.progressFill, { width: `${progress * 100}%` }]} />
       </View>
 
-      <ScrollView
-        contentContainerStyle={s.scroll}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Step dots */}
-        <View style={s.dots}>
-          {STEPS.map((_, i) => (
-            <View
-              key={i}
-              style={[s.dot, i === step && s.dotActive, i < step && s.dotDone]}
-            />
-          ))}
-        </View>
-
-        {/* Step card */}
-        <Animated.View
-          style={[s.card, { transform: [{ translateX: slideAnim }] }]}
-        >
-          <View style={s.cardIconWrap}>
-            <Text style={s.cardIcon}>{current.icon}</Text>
-          </View>
+      <ScrollView contentContainerStyle={s.scroll}>
+        <Animated.View style={[s.card]}>
           <Text style={s.cardTitle}>{current.title}</Text>
-          <Text style={s.cardSub}>{current.subtitle}</Text>
-          <View style={s.cardDivider} />
 
           {/* Field */}
-          {current.type === "options" && (
-            <OptionPicker
-              options={current.options!}
-              value={value}
-              onChange={(v) => updateField(current.key, v)}
-            />
-          )}
-
           {current.type === "yesno" && (
             <YesNo
               value={value}
-              onChange={(v) => updateField(current.key, v)}
+              onChange={(v: string) => update(current.key, v)}
+            />
+          )}
+
+          {current.type === "options" && (
+            <Options
+              options={current.options}
+              value={value}
+              onChange={(v: string) => update(current.key, v)}
             />
           )}
 
           {current.type === "text" && (
-            <View style={[s.inputWrap, focused && s.inputFocused]}>
-              <TextInput
-                placeholder={current.placeholder}
-                placeholderTextColor="rgba(255,255,255,0.3)"
-                value={value}
-                onChangeText={(v) => updateField(current.key, v)}
-                onFocus={() => setFocused(true)}
-                onBlur={() => setFocused(false)}
-                style={s.input}
-                autoCapitalize="words"
-              />
-            </View>
+            <TextInput
+              placeholder={current.placeholder}
+              placeholderTextColor="#777"
+              value={value}
+              onChangeText={(v) => update(current.key, v)}
+              style={s.input}
+            />
           )}
         </Animated.View>
 
-        {/* CTA */}
         <TouchableOpacity
-          style={[s.nextBtn, !value && s.nextBtnDisabled]}
-          onPress={step < TOTAL - 1 ? goNext : submitSurvey}
-          activeOpacity={value ? 0.85 : 1}
-          disabled={submitting}
+          style={[s.nextBtn, !value && { opacity: 0.3 }]}
+          onPress={step < TOTAL - 1 ? next : submit}
+          disabled={loading}
         >
           <Text style={s.nextBtnText}>
-            {submitting
-              ? "SUBMITTING…"
-              : step < TOTAL - 1
-                ? "CONTINUE"
-                : "SUBMIT SURVEY"}
+            {loading ? "Processing..." : step < TOTAL - 1 ? "Next" : "Submit"}
           </Text>
-          {!submitting && (
-            <Text style={s.nextBtnArrow}>{step < TOTAL - 1 ? "→" : "✓"}</Text>
-          )}
         </TouchableOpacity>
-
-        {/* Skip hint */}
-        {!value && (
-          <Text style={s.hint}>Select an answer above to continue</Text>
-        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
-// ── Styles ────────────────────────────────────────────────────────────────────
+// ── Styles ─────────────────────────────────────────
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: BG },
-  scroll: { paddingHorizontal: 22, paddingBottom: 48 },
+  scroll: { padding: 20 },
 
-  // Top bar
   topBar: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingBottom: 12,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 2,
-    borderWidth: 1,
-    borderColor: "rgba(201,168,76,0.3)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  backIcon: { color: G, fontSize: 18 },
-  stepBadge: {
-    backgroundColor: G_DIM,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 2,
-    borderWidth: 1,
-    borderColor: "rgba(201,168,76,0.3)",
-  },
-  stepBadgeText: {
-    color: G,
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 2,
+    padding: 20,
   },
 
-  // Progress
   progressTrack: {
-    height: 2,
-    backgroundColor: "rgba(255,255,255,0.06)",
-    marginHorizontal: 22,
-    marginBottom: 24,
-    borderRadius: 1,
+    height: 4,
+    backgroundColor: "#222",
   },
-  progressFill: { height: 2, backgroundColor: G, borderRadius: 1 },
-
-  // Dots
-  dots: { flexDirection: "row", gap: 6, marginBottom: 20 },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "rgba(255,255,255,0.12)",
+  progressFill: {
+    height: 4,
+    backgroundColor: G,
   },
-  dotActive: { backgroundColor: G, width: 20, borderRadius: 3 },
-  dotDone: { backgroundColor: "rgba(201,168,76,0.4)" },
 
-  // Card
   card: {
     backgroundColor: CARD,
-    borderWidth: 1,
-    borderColor: "rgba(201,168,76,0.25)",
-    borderRadius: 2,
-    padding: 24,
-    marginBottom: 24,
-  },
-  cardIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: G_DIM,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 16,
-  },
-  cardIcon: { color: G, fontSize: 20 },
-  cardTitle: {
-    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 6,
-  },
-  cardSub: {
-    color: "rgba(255,255,255,0.45)",
-    fontSize: 13,
-    lineHeight: 20,
-    marginBottom: 4,
-  },
-  cardDivider: {
-    height: 1,
-    backgroundColor: "rgba(201,168,76,0.15)",
-    marginVertical: 18,
+    padding: 20,
+    borderRadius: 10,
+    marginBottom: 20,
   },
 
-  // Options
+  cardTitle: {
+    color: "#fff",
+    fontSize: 18,
+    marginBottom: 15,
+  },
+
   optionList: { gap: 10 },
   optionBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+    padding: 15,
     backgroundColor: "#1A1A1A",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
-    borderRadius: 2,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
-  optionBtnActive: { borderColor: G, backgroundColor: "rgba(201,168,76,0.08)" },
-  optionDot: {
-    width: 16,
-    height: 16,
     borderRadius: 8,
-    borderWidth: 1.5,
-    borderColor: "rgba(255,255,255,0.25)",
   },
-  optionDotActive: { borderColor: G, backgroundColor: G },
-  optionText: { flex: 1, color: "rgba(255,255,255,0.55)", fontSize: 14 },
-  optionTextActive: { color: "#fff", fontWeight: "600" },
-  optionCheck: { color: G, fontSize: 14, fontWeight: "700" },
+  optionBtnActive: { borderColor: G, borderWidth: 1 },
+  optionText: { color: "#aaa" },
+  optionTextActive: { color: "#fff" },
 
-  // Yes / No
-  yesnoRow: { flexDirection: "row", gap: 12 },
+  yesnoRow: { flexDirection: "row", gap: 10 },
   yesnoBtn: {
     flex: 1,
-    height: 56,
-    borderRadius: 2,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    padding: 15,
     backgroundColor: "#1A1A1A",
     alignItems: "center",
-    justifyContent: "center",
   },
-  yesnoActive: { borderColor: G, backgroundColor: "rgba(201,168,76,0.1)" },
-  yesnoText: {
-    color: "rgba(255,255,255,0.45)",
-    fontSize: 15,
-    fontWeight: "600",
-    letterSpacing: 1,
-  },
-  yesnoTextActive: { color: G },
+  yesnoActive: { backgroundColor: G },
+  yesnoText: { color: "#aaa" },
+  yesnoTextActive: { color: "#000" },
 
-  // Text input
-  inputWrap: {
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
-    borderRadius: 2,
+  input: {
     backgroundColor: "#1A1A1A",
-    paddingHorizontal: 16,
-    height: 52,
+    color: "#fff",
+    padding: 15,
+    borderRadius: 8,
   },
-  inputFocused: { borderColor: G, backgroundColor: "rgba(201,168,76,0.05)" },
-  input: { flex: 1, color: "#fff", fontSize: 15, height: "100%" },
 
-  // Next / Submit
   nextBtn: {
     backgroundColor: G,
-    height: 54,
-    borderRadius: 2,
-    flexDirection: "row",
+    padding: 18,
     alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    marginBottom: 14,
+    borderRadius: 10,
   },
-  nextBtnDisabled: { opacity: 0.35 },
-  nextBtnText: {
-    color: "#0A0A0A",
-    fontSize: 13,
-    fontWeight: "800",
-    letterSpacing: 3,
-  },
-  nextBtnArrow: { color: "#0A0A0A", fontSize: 18, fontWeight: "700" },
-
-  hint: {
-    textAlign: "center",
-    color: "rgba(255,255,255,0.2)",
-    fontSize: 11,
-    letterSpacing: 1,
-  },
+  nextBtnText: { fontWeight: "bold" },
 });
